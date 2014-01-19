@@ -1,0 +1,11 @@
+Makefile
+file
+makeargv.c
+makeargv.o
+old.c
+p1.pdf
+send.sh
+shell
+shell.bk.c
+shell.c
+shell.o
