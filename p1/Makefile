@@ -1,14 +1,14 @@
-all: shell
+all: gshell
 
-shell: shell.o makeargv.o
-	gcc -o shell shell.o makeargv.o
+gshell: gshell.o makeargv.o
+	gcc -o gshell gshell.o makeargv.o
 
-shell.o: shell.c
-	gcc -c shell.c
+gshell.o: gshell.c
+	gcc -c gshell.c
+
 
 makeargv.o: makeargv.c
 	gcc -c makeargv.c
 
 clean:
-	rm shell *.o
-
+	rm gshell *.o

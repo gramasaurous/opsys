@@ -1,0 +1,97 @@
+CS 111 - HW 1
+Graham Greving
+ggreving@ucsc.edu
+
+Ch 1 # 6, 7, 13, 14, 25
+
+6. There are several design goals in building an operating system, for example: resource utilization, timeliness, robustness and so on. Give an example of two design goals that may contradict one another.
+
+	Timeliness and resource utilization could contradict each other. Managing resources effectively (without collision or interruption) can result in processes having longer wait times.
+
+7. Which of the following instructions should be allowed only in kernel-mode?
+(a) Disable all interrupts
+(b) Read the time-of-day clock
+(c) Set the time-of-day clock
+(d) Change the memory map
+	
+	All of the above. Except maybe read the time-of-day clock, I'm not sure about that one.
+
+13. What is a TRAP instruction? Explain it’s use in operating systems.
+	- A TRAP is a hardware interrupt
+	- A TRAP instruction makes the context switch from user-mode to kernel-mode, and is used when a program in user-mode needs to execute a system call (routine that can only be handled by the operating system) and then returns back to user-mode to execute the next instruction
+	- Allows the computer to separate between kernel (OS) tasks and user tasks.
+
+14. What is the key difference between a trap and an interrupt?
+
+	A trap a type of hardware interrupt, such as an invalid memory access or a divide-by-zero condition. Whereas interrupts can be either software or hardware signals.
+
+25. To a programmer, a system call looks like any other call to a library procedure. Is it important that a programmer know which library procedures result in system calls? Under what circumstances and why?
+
+	Under all circumstances a programmer should understand which library routines will force the computer into kernel-mode (requiring a context switch, which has a large time penalty). For example, structuring programs to not execute reduntant I/O calls within loops. Forcing a context switch in each iteration of a for-loop is very bad for performance time.
+
+Ch 2 # 1, 4, 11, 26, 36
+
+1. In Fig. 2-2 [page 90], three process states are shown. In theory, with three states, there could be six transitions, two out of each state. However, only four transitions are shown. Are there any circumstances in which either or both of one of the missing transitions might occur?
+
+	The other possibilities are:
+		a) Blocked -> Running
+		b) Ready -> Blocked
+	Option a) cannot happen since blocked processes must wait their turn to be run just as any other process would. Option b) cannot happen since a Ready process is not running, and therefore nothing can happen to it to make it Blocked.
+
+4. When an interrupt or a system call transfers control to the operating system, a kernel stack area separate from the stack of the interrupted process is generally used. Why?
+
+	This is to preserve the state of the running program so it cannot "mess up" any of the vital OS memory, and the OS cannot "mess up" any of the programs memory. It also lets the OS execute more than one process at the /same time.
+
+11. Why would a thread ever voluntarily give up the CPU by calling thread_yield? After all, since there is no periodic clock interrupt, it may never get the CPU back.
+
+	Since threads are created by the programmer, and there is no thread "scheduler" (such as in the OS),it is in his/her best intention to not let one thread run wild and hog the processes CPU time forever.
+	Additionally, to prevent a resource deadlock, it could be neccessary for a thread to yield itself in order for the process to continue succesfully.
+
+26. Show how counting semaphores (i.e., semaphores that can hold an arbitrary value) can be implemented using only binary semaphores and ordinary machine instructions.
+
+	You can use a mutex (binary semaphore) to increment or decrement a variable through the Lock and Unlock mutex operations. Additionally, the TSL and XCHG instructions, allow hardware protection to implement a mutex.
+
+	From the textbook (page 131):
+	mutex_lock:
+		TSL REG, MUTEX
+		CMP REG, #0
+		JZE ok
+		CALL thread_yield
+		JMP mutex_lock
+		RET
+	ok:
+
+	mutex_unlock:
+		MOVE MUTEX, #0
+		RET
+
+	Now, to implement a counting semaphore (in c, with mutex_lock and mutext_unlock as defined in asm above):
+
+	mutex m;	// mutex
+	int i;		// counting semaphore
+
+	// To increment the semaphore
+	int increment(void) {
+		if (mutex_lock(m) {
+			i++;
+			mutex_unlock(m);
+			return (0);
+		}
+		return (-1);
+	}
+	// To decrement the semaphore
+	int decrement(void) {
+		if (mutex_lock(m)) {
+			i--;
+			mutex_unlock(m);
+			return (0);
+		}
+		return (-1);
+	}
+
+36. Five jobs are waiting to be run. Their expected run times are 9,6,3,5, and X. In what order should they run to minimize average response time? (Your answer will depend on X)
+
+	It depends on the system and the scheduling algorithm being used. If this were a batch system, then shortest-job-first algorithm produces the minimun response time. In which case, depending on X, they would be run:
+		3,5,6,9
+	With X either at the front, end or in the middle somwhere depending on it's runtime.
+	If the system were interactive, different algorithms could be used, most of which aren't dependent on expected runtime, because in an interactive system that's very hard to determine.

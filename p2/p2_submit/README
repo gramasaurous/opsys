@@ -1,0 +1,34 @@
+CMPS 111: Project 2 - Scheduler
+Graham Greving
+ggreving@ucsc.edu
+
+This is my scheduler, I have included the implementation and rules for 
+my own personal lottery scheme, however did not have time to implement 
+them.
+
+Included files:
+schedproc.h
+	lives in /usr/src/servers/sched
+	modifies the schedproc struct to include a number of tickets
+schedule_vanilla.c
+	lives in /usr/src/servers/sched
+	implements a plain lottery schedule system
+schedule_dynamic.c
+	lives in /usr/src/servers/sched
+	implements a dynamic lottery schedule system
+
+To make the vanilla lottery scheduler:
+	# make vanilla
+To make the dynamic lottery scheduler:
+	# make dynamic
+These two make commands copy the necessary files to their appropriate 
+destinations and issue the 'make install' command from /usr/src/tools to 
+recompile the kernel.
+
+To run either scheduler:
+	from the prompt run:
+		shutdown
+	from the bootloader run:
+		image=/boot/image/3.1.8rX
+	where X is the most recent boot image
+

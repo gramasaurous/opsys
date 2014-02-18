@@ -1,0 +1,33 @@
+Graham Greving
+ggreving@ucsc.edu
+CMPS111 - HW2
+
+Ch 3 # 3, 5, 9, 15, 22
+
+3. In this problem you are to compare the storage needed to keep track of free memory using a bitmap versus using a linked list. The 128-MB memory is allocated in units of n bytes. For the linked list, assume that memory consists of an alternating sequence of segments and holes, each 64 KB. Also assume that each node in the linked list needs a 32-bit memory address, a 16-bit length and a 16-bit next-node field. How many bytes of storage is required for each method? Which one is better?
+
+	The size of a bitmap used to keep track of the free segments depends on the size of the segments. The size of a bitmap for a 128MB memory with n byte segments will be 128MB/n bits large.
+
+	The amount of memory used to keep track of memory with a linked list depends on the "freeness" of the memory. If the size of a linked-list node is 32bits, and all of the memory is free, then only one node will be required to map the memory. When a process occupies a piece of that memory, it then becomes either 2 nodes, or 3 nodes (if the process is inserted in the middle), meaning 64 and then 96bits respectively.
+
+5. For each of the following decimal virtual addresses, compute the virtual page number and offset for a 4-KB page and for an 8-KB page: 20000, 32768, 60000.
+	
+	20000 in 4K pages: Page 4 Off 3616
+		 8K pages: Page 2 Off 3616
+	32768 in 4K pages: Page 4 Off 0
+		 8K pages: Page 2 Off 0
+	60000 in 4K pages: Page 14 Off 2656
+		 8K pages: Page 7 Off 2656
+	
+9. A machine has a 32-bit address space and an 8-KB page. The page table is entirely in hardware, with one 32-bit word per entry. When a process starts, the page table is copied to the hardware from memory, at one word every 100nsec. If each process runs for 100 msec (including the time to load the page table), what fraction of the CPU time is devoted to loading the page tables?
+
+If there are 2^32 addresses with 8K page sizes, then there are 2^32 - 2^13 = 2^19 pages. Each 32b-word entry in the page table takes 100ns to load: 2^19 * 100ns = 52428800ns = 52.4288ms. Total CPU time = 100ms. Percent of CPU time taken to load page table: 52.4288ms/100ms = 52% (more than half).
+
+15. A computer whose processes have 1024 pages in their address spaces keeps its page tables in memory. The overhead required for reading a word from the page table is 5 nsec. To reduce this overhead, the comuter has a TLB, which holds 32 (virtual page, physical page frame) pairs, and can do a look up in 1 nsec. What hit rate is needed to reduce the mean overhead to 2nsec?
+
+A 75% hit-rate is required for the mean overhead to be 2ns.
+
+22. If FIFO page replacement is used with four page frames and eight pages, how many page faults will occur with the reference string 0172327103 if the four frames are initially empty? Now repeat this problem for LRU.
+	
+FIFO: 6 page faults, 4 initial compulsory page faults, and 2 additional.
+LRU: 7 page faults, 4 initial compulsory page faults, and 3 additional.

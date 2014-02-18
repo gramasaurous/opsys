@@ -1,0 +1,31 @@
+DESIGN
+
+Functions:
+int meminit(long n_bytes, unsigned int glads, int parm1, int *parm2)
+	- initialize memory allocator
+	- n_bytes is the number of bytes to manage
+	- flags describe the behavior of the allocator
+	- parm1, parm2 can be used to customize the allocator
+	- returns a positive handle to identify the allocator (more than one allocators can be initalized for any given process)
+	- return negative number on error,
+
+void *memalloc(int handle, long n_bytes)
+	- returns a pointer to a region of n_bytes of data.
+	- invalid handle or no memory, return NULL (void *0)
+
+void memfree(void *region)
+	- frees an allocated memory region (returns it to the pool of memory) for the appropriate handle
+	- handle is not passed, memfree has to figure out which handle to free the memory from
+	- no return value
+
+Allocatory Schemes:
+Buddy:
+	- parm1 is the minimum page size, in address bits 12 -> 2^12 -> 4KB
+	- if region of memory is not a power of two, error -1
+	- flags -> 0x1 for buddy allocator
+	- start with memory region, and split it
+	- use as little memory as possibel to keep track of used memory
+	- one bitmap per page size 128 pages of 4KB, 4KB bitmap has 128 entries
+	- 
+
+Free-list:

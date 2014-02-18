@@ -1,5 +1,5 @@
 #!/bin/bash
 
-scp makeargv.c Makefile shell.c student@cs105vm07.soe.ucsc.edu:p1
+scp makeargv.c test.c Makefile gshell.c student@cs105vm07.soe.ucsc.edu:p1
 echo done!
 

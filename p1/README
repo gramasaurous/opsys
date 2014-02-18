@@ -1,0 +1,35 @@
+README - PROJECT 1
+cs111-w14
+Graham Greving
+ggreving@ucsc.edu
+
+The G(raham) Shell
+
+To Compile:
+	$ make clean
+	$ make all
+
+To Run:
+	$ ./gshell
+
+To Use:
+	The G(raham) Shell operates similar to any other shell, albeit with reduced functionality. Enter commands at the prompt:
+		>> rm -Rf *
+	^ probably not a good idea.
+	The G(raham) Shell accepts commands with and without arguments, input and output redirection:
+		>> ls -R / > file
+		>> wc < file
+	As well as compounding commands:
+		>> ls -R && wc file
+	And backgrounding processes:
+		>> sleep 5 &
+		Backgrounding 1231...
+		>> 1234 Terminated!
+		>>
+	Additionally, the internal command "exit" is supported:
+		>> exit
+		Exiting!
+	As an added bonus, the user can change the prompt characters:
+		>> chp g:
+		Changing prompt!
+		g:

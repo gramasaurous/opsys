@@ -1,0 +1,66 @@
+CMPS 111: Project 2 - Scheduler
+Graham Greving
+ggreving@ucsc.edu
+
+Vanilla Lottery Scheduler:
+When a process initializes, give it 5 tickets and place it on the losing queue. Periodically run a function which generates a random number, crawls through the loser queue (processes which have not been scheduled yet) and incrementally totals the processes tickets, when the random number is reached, that process has won! Place it on the winning queue and schedule it.
+When a process runs out of quantum, place it back on the losing queue.
+When a process blocks before it's quantum has run out, place it back on the losing queue.
+
+Dynamic Lottery Scheduler:
+Same as Vanilla, except the number of tickets is determined by the processes "niceness." When a process runs out of quantum, decrement it's number of tickets (unless ticks = 1 to avoid starvation). When a process blocks before running out of quantum, increment it's number of tickets (unless ticks = initial ticks, to avoid runaway processes)
+
+My own scheme:
+Same as above, except harsher penalties are given for running out of quantum, and better rewards are given for using less quantum. In case of no_quantum, number of tickets is halfed (+1 to ensure no starvation). In case of blocking before quantum, allot a max of 10 tickets depending on the percentage of time not used by the process.
+
+Changes to make:
+/usr/src/include/minix/config.h
+	#define WIN_Q 0
+	#define LOSE_Q 1
+	and/or
+	#define MAX_USER_Q 0
+	#define MIN_USER_Q 1
+	^ forces userspace processes onto queues 1 and 2
+
+/usr/src/servers/sched/schedproc.h
+	unsigned num_ticks;
+	^ add into struct schedproc
+
+/usr/src/servers/sched/schedule.c
+	add a global total_tickets variable to keep track of alloted tickets.
+
+	do_noquantum:
+		dynamic: if tickets != 1 tickets -= 1
+		myown: if tickets = tickets/2 + 1
+		vanilla: tickets = tickets
+		priority = 1
+
+	do_stop_scheduling:
+		// no changes that I can think of
+	init_scheduling:
+		initialize the random number generator
+
+	do_nice:
+		call distribute_tickets
+
+	do_start_scheduling:
+		give 5 tickets
+		priority = 1 (LOSE_Q)
+
+	balance_queues:
+		call play_lottery
+		reset the timer
+
+	schedule_process:
+
+	play_lottery:
+		rnd = random() % total_tickets
+		count = 0
+		for process in proc_list
+			count += process.num_tickets
+			if count >= rnd
+				process.priority = 0 (WIN_Q)
+				schedule(process)
+
+	distribute_ticks:
+		modify a processess' number of tickets

@@ -1,0 +1,109 @@
+DESIGN - PROJECT 1
+cs111-w14
+Graham Greving
+ggreving@ucsc.edu
+
+The G(raham)Shell
+
+Specifications:
+1. Internal Shell Command, Exit
+	>> exit
+2. Command with no arguments
+	>> ls
+3. Command with arguments
+	>> ls -R /
+4. A command, w/ or w/o arguments, whose output is redirected to a file specified on the command line.
+	>> ls -R / > file1
+4. A command, w/ or w/o arguments, who input is redirected from a file specified on the command line.
+	>> wc < file1
+5. Commands separated by the "&&" operator. 
+	>> touch file && wc file
+6. A command, w/ or w/o arguments, executed in the background.
+	>> sleep 5 &
+
+7. Any combination of the above features.
+
+	>> ls -R / > file1 && wc < file1 &
+
+Global Variables:
+	int bg:
+		Defines a command is to be executed in the background.
+	int zombie:
+		Defines a backgrounded process has terminated (set by the signal handler), value is that of the completed process id. Else, set to -1.
+	int fdout:
+		File descriptor of file to be read for input. If not open, set to -1.
+	int fdin:
+		File descriptor of file to be read for input. If not open, set to -1.
+
+Functions:
+	static void sig_chld(int signo):
+		Catches SIGCHLD, sets a global variable to inform the shell that a background process has been waited on in order to print the information.
+	int exec_command(char **cmdstring):
+		Accepts a command string to execute with execvp. Also uses a few global variables to react to different shell cases. If the redirect files are open (fd >= 0), then they are duplicated with the stdout or stdin and the original is closed. if the background flag is set, then the parent process will not wait for the child, and the appropriate signal handler is set.
+	int parseargv(int argc, char **argv):
+		Takes in a set of tokens from the lex replacement function, and the number or tokens. Initializes any global variables, sets up a command string on the stack. Checks first token for "exit", acts accordingly. Loops over each token checking for special characters:
+			"&" sets the bg flag
+			"&&" executes the current cmdstring (via exec_command), if it returns with 0, then it calls parseargv(token+1) in order to process the remaining commands. After successful or unsuccsesful execution, returns from the function accordingly.
+			">" opens the file specified in the following token. fdout is used as fd.
+			"<" opens the file specified in the following token. fdin is used as fd.
+		If no special character is found, then the token is a "normal word" and is placed on the cmdstring.
+		Once all tokens have been processed, parseargv calls exec_command with the current cmdstring then closes and open file descriptors.
+	int makeargv(const char *s, const char *delimiters, char ***argvp):
+		From starter code, returns a list of tokens created from delimiters and input string.
+	main:
+		Sets up all global variables. Checks to see if any backgrounded processes have finished, if so, prints accordingly. Prints the prompt, recieves input from stdin (fgets), if fgets fails, clearerr(stdin) is called to clear the input buffer, preventing a bug on MINIX where a signal handler interrupts a system call, which creates an infinte prompt loop with no input possibility.
+		Gets the tokens from the input.
+		Parses the tokens.
+		Frees the tokens.
+
+
+Control Flow:
+variables:
+	cmdstring (string array)
+	fdin (file descriptor)
+	fdout (file descriptor)
+
+while (1):
+	getline (fgets)
+	gettokens (makeargv)
+
+	if token[0] == "exit"
+		exit
+	for token in tokens:
+		switch token:
+			case "&":
+				set bgflag true
+			case "&&":
+				exec_cmd cmdstring, if returns OK, parse tokens+1
+				continue
+			case ">":
+				fdout = open ++token
+			case "<":
+				fdin = open ++token
+			default:
+				cmdstring += token
+	exec_cmd cmdstring
+
+exec_cmd:
+	fork
+	error:
+		exit
+	child:
+		if fdout is open:
+			duplicate fdout, stdout
+			close fdout
+		if fdin is open:
+			duplicate fdin, stdin
+			close fdin
+		exec cmdstring
+	parent:
+		if fdout is open:
+			close fdout
+		if fdin is open:
+			close fdin
+		if bg flag is set:
+			set up signal handler to catch SIGCHLD
+			print "background pid"
+		else:
+			set up signal handler to ignore SIGCHLD
+		wait  for child
