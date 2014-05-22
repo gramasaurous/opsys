@@ -1,0 +1,101 @@
+# DESIGN
+
+Part 1 - System Call
+Objective:
+Create a new MINIX system call to set an AES key for the current user.
+	
+	Step 1. System Call Handler: do_setkey()
+	* Find an unused table entry in /usr/src/servers/fs/table.c:
+		- I used entry #69 on line 88:
+		- Change no_sys, to do_setkey,
+	* Next add the function prototype to /usr/src/servers/fs/proto.h:158
+		- _PROTOTYPE( int setkey, (unsigned int, unsigned int) );
+	* Create a new function do_setkey() in /usr/src/servers/fs/protect.c
+		- This is where the system call code goes (explained in-depth below)
+	* Add #define constants to /usr/src/servers/fs/const.h:107
+		- MAX_KEYS 8
+		- KEY_BITS 128
+	* Add the user_keys list to /usr/src/servers/fs/type.h:25
+		- struct with user id, and key char array (KEY_BITS/sizeof(char))
+		- declared as an array with MAX_KEYS elements
+
+	To compile the system call code:
+		cd /usr/src/servers
+		make image
+		make install
+	
+	Step 2. User Library: setkey(unsigned int k0, unsigned int k1)
+	Create the file /usr/src/lib/posix/setkey.c
+		- This is where we use _syscall() and the messaging interface to call our system call. 
+		- Have to #include <lib.h> and <unistd.h>
+	Create a message:
+		message m;
+	Define/set it's values:
+		m.m1_i1 = k0;
+		m.m1_i2 = k1;
+	Call the setkey system call
+		#define SETKEY 69 /* entry in fs table.h */
+	 	_syscall(FS, SETKEY, &m);
+	Add setkey.c to /usr/src/lib/posix/Makefile.in:101
+
+	To compile the user library:
+		cd /usr/src/
+		make libraries
+
+	To create a new boot image:
+		cd /usr/src/tools
+		make hdboot
+		make image
+
+	To reboot with thew new image:
+		shutdown
+		d0p0s0>image=/boot/image/3.1.2arX  #Where X is the version no.
+		d0p0s0>boot
+	Or, from the command prompt:
+		image=/boot/image/3.1.2arX
+		reboot
+
+Part 2 - Modify kernel to accept sticky bit for files
+Objective:
+Allow minix kernel to set the sticky bit for files so we can use it as an encryption bit.
+	/usr/src/include/minix/const.h:100
+	#define I_ENCRYPT_BIT 	0001000
+	#define ALL_MODES 	0007777
+
+Part 3 - Protect file
+
+
+Part 4 - FS encryption code
+Objective:
+
+# In-Depth:
+
+System Call:
+Data Structures:
+	There is a global list available to FS server.
+	/usr/src/servers/fs/type.h:
+		struct {
+			uid_t uid;
+			char key[KEY_BITS/sizeof(char)];
+		} user_keys[MAX_KEYS];
+	MAX_KEYS and KEY_BITS are defined in /usr/src/servers/const.h as 8 and 128 respectively.
+	For this project we are assuming there are only 8 users, 7 normal users and 1 superuser. We are also assuming that the first non-super user has the uid 12 (which is the case in minix 3.1.2), and every successive new user takes on the next free uid greater than 12.
+	This allows us to easily index a user into the table:
+		if (uid == 0) {
+			slot = 0;
+		} else {
+			slot = uid - 12 + 1;
+		}
+	To ensure we have the correct slot, we also store the real uid in the table entry.
+	Sample Table:
+		+------+------+------+
+		| slot | uid  | key  |
+		|  0   |  0   | 0109 |
+		|  1   |  12  | 0208 |
+		|  2   |  13  | 0307 |
+		|  3   |  14  | 0406 |
+		|  4   |  15  | 0505 |
+		|  5   |  16  | 0604 |
+		|  6   |  17  | 0703 |
+		|  7   |  18  | 0802 |
+		+------+------+------+

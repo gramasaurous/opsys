@@ -1,0 +1,20 @@
+/* Graham Greving
+ * CMPS 111:OS - Project 4: Minix EFS
+ * README
+ * A simple explanation of how to work the EFS patch for minix 3.1.2
+ */
+
+Simply drop the p4 directory into minix and run make all.
+If encryption does not work upon reboot, please find the correct boot image:
+ls -t /boot/image | head -1
+image=/boot/image/(result from ^)
+boot
+
+To Use:
+make all
+	copies all files
+	recompiles the kernel
+	reboots into (hopefully) the correct boot image
+
+make protectfile
+	makes the protectfile binary

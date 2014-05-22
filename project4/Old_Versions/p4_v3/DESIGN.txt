@@ -1,0 +1,47 @@
+DESIGN
+
+Part 1 - System Call
+	Objective: Create a new MINIX system call to set an AES key for the current user.
+	
+	Step 1. System Call Handler
+		- Find an unused table entry in /usr/src/servers/fs/table.c:
+			I used entry #69 on line 88:
+			Change no_sys, to setkey,
+		- Next add the function prototype to /usr/src/servers/fs/proto.h:158
+			_PROTOTYPE( int setkey, (unsigned int, unsigned int) );
+		- Next create the file /usr/src/servers/fs/setkey.c
+			This is where all of the system call code will go
+		- Next add the setkey.o dependency to /usr/src/servers/fs/Makefile:19
+
+		To compile the system call code:
+			cd /usr/src/servers
+			make image
+			make install
+	
+	Step 2. User Library
+		- Create the file /usr/src/lib/posix/setkey.c
+			This is where we use _syscall() and the messaging interface to call our system call. 
+			Have to #include <lib.h> and <unistd.h>
+			Create a message:
+				message m;
+			Define set it's values:
+				m.m1_i1 = k0;
+				m.m1_i2 = k1;
+			Call the setkey system call
+				#define SETKEY 69 /* entry in fs table.h */
+			 	_syscall(FS, SETKET, &m);
+		- Add setkey.c to /usr/src/lib/posix/Makefile.in:101
+
+		To compile the user library:
+			cd /usr/src/
+			make libraries
+
+		To create a new boot image:
+			cd /usr/src/tools
+			make hdboot
+			make image
+			
+		To reboot with thew new image:
+			shutdown
+			d0p0s0>image=/boot/image/3.1.2arX  #Where X is the version no.
+			d0p0s0>boot
