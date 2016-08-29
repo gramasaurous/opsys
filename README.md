@@ -1,7 +1,7 @@
-cmps111
+opsys
 =======
 
-CMPS111: Operating Systems
+Operating Systems Coursework
 
 Four Projects:
 1. Shell
